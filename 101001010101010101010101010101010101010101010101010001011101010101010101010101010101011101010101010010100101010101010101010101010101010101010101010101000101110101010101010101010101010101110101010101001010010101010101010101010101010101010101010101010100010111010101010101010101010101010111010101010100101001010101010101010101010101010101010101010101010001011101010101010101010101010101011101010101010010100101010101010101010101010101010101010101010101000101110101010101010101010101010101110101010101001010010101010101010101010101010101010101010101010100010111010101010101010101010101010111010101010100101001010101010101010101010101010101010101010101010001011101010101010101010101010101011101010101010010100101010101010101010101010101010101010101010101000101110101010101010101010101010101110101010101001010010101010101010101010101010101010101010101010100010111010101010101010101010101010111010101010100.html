@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Game Galaxy</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background: black;
+      color: white;
+      height: 100vh;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: -1;
+    }
+
+    #topbar {
+      position: sticky;
+      top: 0;
+      display: flex;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.85);
+      padding: 10px;
+      z-index: 2;
+    }
+
+    #searchIcon, #filterBtn {
+      cursor: pointer;
+      font-size: 20px;
+      background: #00ffff33;
+      padding: 5px 10px;
+      border-radius: 8px;
+      transition: background 0.3s;
+    }
+
+    #searchIcon:hover, #filterBtn:hover {
+      background: #00ffff66;
+    }
+
+    #searchBar {
+      width: 0;
+      overflow: hidden;
+      transition: width 0.3s ease;
+      background: #111;
+      border: none;
+      color: white;
+      padding: 5px;
+    }
+
+    #searchBar.open {
+      width: 200px;
+    }
+
+    #tagPanel {
+      display: none;
+      flex-wrap: wrap;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 10px;
+      border-top: 1px solid #00ffff33;
+    }
+
+    .tagBtn {
+      background: #222;
+      color: #00ffff;
+      padding: 4px 10px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 14px;
+      border: 1px solid #00ffff44;
+      transition: 0.3s;
+    }
+
+    .tagBtn.active {
+      background: #00ffff;
+      color: black;
+      border-color: #00ffff;
+    }
+
+    #gameContainer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      padding: 20px;
+      justify-content: center;
+    }
+
+    .gameCard {
+      width: 230px;
+      height: 260px;
+      padding: 5px;
+      text-align: center;
+      cursor: pointer;
+      border-radius: 10px;
+      transition: 0.2s;
+    }
+
+    .gameCard:hover {
+      background-color: #00ffff22;
+    }
+
+    .gameCard img {
+      width: 220px;
+      height: 220px;
+    }
+
+    .gameCard span {
+      display: block;
+      margin-top: 5px;
+      font-size: 16px;
+    }
+
+    #backToTop {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #00ffff;
+      color: black;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      z-index: 5;
+      opacity: 0.7;
+      transition: opacity 0.3s;
+    }
+
+    #backToTop:hover {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+
+<div id="topbar">
+  <div id="searchIcon">🔍</div>
+  <input type="text" id="searchBar" placeholder="Search...">
+  <div id="filterBtn">🔽 Filter</div>
+</div>
+
+<div id="tagPanel"></div>
+
+<div id="gameContainer">
+  <div class="gameCard" data-title="Basket Random" data-tags="basketball,2-player,sports" onclick="openGame('https://professorlouie.github.io/gamehub/basketrandom/')">
+    <img src="https://play-lh.googleusercontent.com/gP8T5Z1O-ngxIloiwcBZzrzyLPYDp0R_1BDNKUDZboIRPVImeyWI8-7aExvB9gAGNKc" alt="Basket Random">
+    <span>Basket Random</span>
+  </div>
+  <div class="gameCard" data-title="Slope" data-tags="endless,3d,fast" onclick="openGame('https://pbiscul.github.io/Slope-Gameyes/')">
+    <img src="https://play-lh.googleusercontent.com/uJn2i9h7KxYQarC_c3K4qH6o7gLtflFnhD_dN14MNkzHJ1NeNFzCL69jpB5mT0vCoQs" alt="Slope">
+    <span>Slope</span>
+  </div>
+  <div class="gameCard" data-title="Flappy Bird" data-tags="arcade,retro,flap" onclick="openGame('https://professorlouie.github.io/gamehub/flappybird/')">
+    <img src="https://upload.wikimedia.org/wikipedia/en/0/0a/Flappy_Bird_icon.png" alt="Flappy Bird">
+    <span>Flappy Bird</span>
+  </div>
+</div>
+
+<a href="#topbar" id="backToTop">⬆ Top</a>
+
+<script>
+  // Starfield Background
+  const canvas = document.getElementById("stars");
+  const ctx = canvas.getContext("2d");
+  let stars = [];
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    stars = Array.from({ length: 150 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 1.5
+    }));
+  }
+
+  window.addEventListener("resize", resize);
+  resize();
+
+  function drawStars() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "white";
+    for (let star of stars) {
+      ctx.beginPath();
+      ctx.arc(star.x, star.y, star.r, 0, 2 * Math.PI);
+      ctx.fill();
+      star.y += 0.4;
+      if (star.y > canvas.height) star.y = 0;
+    }
+    requestAnimationFrame(drawStars);
+  }
+  drawStars();
+
+  // Search bar toggle
+  const searchIcon = document.getElementById("searchIcon");
+  const searchBar = document.getElementById("searchBar");
+  searchIcon.addEventListener("click", () => {
+    searchBar.classList.toggle("open");
+    if (searchBar.classList.contains("open")) searchBar.focus();
+  });
+
+  // Open game in about:blank
+  function openGame(url) {
+    const win = window.open("about:blank");
+    win.document.write(`<iframe src="${url}" style="border:none;width:100vw;height:100vh;"></iframe>`);
+  }
+
+  // Tag filter logic
+  const cards = document.querySelectorAll(".gameCard");
+  const tagPanel = document.getElementById("tagPanel");
+  const filterBtn = document.getElementById("filterBtn");
+
+  const allTags = new Set();
+  cards.forEach(card => {
+    card.getAttribute("data-tags").split(',').forEach(tag => allTags.add(tag.trim()));
+  });
+
+  const selectedTags = new Set();
+
+  allTags.forEach(tag => {
+    const btn = document.createElement("div");
+    btn.className = "tagBtn";
+    btn.textContent = tag;
+    btn.onclick = () => {
+      btn.classList.toggle("active");
+      if (selectedTags.has(tag)) selectedTags.delete(tag);
+      else selectedTags.add(tag);
+      updateFilters();
+    };
+    tagPanel.appendChild(btn);
+  });
+
+  filterBtn.onclick = () => {
+    tagPanel.style.display = tagPanel.style.display === "flex" ? "none" : "flex";
+  };
+
+  function updateFilters() {
+    cards.forEach(card => {
+      const tags = card.getAttribute("data-tags").split(',').map(t => t.trim());
+      const matches = [...selectedTags].every(tag => tags.includes(tag));
+      const textMatch = searchBar.value.toLowerCase() === "" ||
+                        card.getAttribute("data-title").toLowerCase().includes(searchBar.value.toLowerCase());
+      card.style.display = (matches && textMatch) ? "block" : "none";
+    });
+  }
+
+  searchBar.addEventListener("input", updateFilters);
+</script>
+</body>
+</html>
